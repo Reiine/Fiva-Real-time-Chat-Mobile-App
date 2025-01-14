@@ -2,6 +2,14 @@ import { SafeAreaView, StyleSheet, Text, View, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import moment from 'moment'; // For formatting the date
+import base64 from 'base64-js'; // Import the base64-js library
+
+// Utility function to decode base64 to string
+const base64ToString = (encodedMessage) => {
+    const paddedMessage = encodedMessage.padEnd(encodedMessage.length + (4 - encodedMessage.length % 4) % 4, '=');
+    const byteArray = base64.toByteArray(paddedMessage);
+    return String.fromCharCode.apply(null, byteArray);
+};
 
 export default function ChatPreview({ data, fivaId, messageSent }) {
     const { pfp, username } = data;
@@ -23,8 +31,14 @@ export default function ChatPreview({ data, fivaId, messageSent }) {
 
                 if (!querySnapshot.empty) {
                     const lastMessageDoc = querySnapshot.docs[0].data();
-                    const messageText = lastMessageDoc.message || '';
+                    let messageText = lastMessageDoc.message || '';
                     const messageTime = lastMessageDoc.time ? lastMessageDoc.time.toDate() : new Date();
+                    
+                    // Decode the base64 encoded message
+                    if (messageText) {
+                        messageText = base64ToString(messageText);
+                    }
+
                     setLastMessage(messageText);
                     setLastMessageTime(moment(messageTime).format('HH:mm')); // Format time
                 } else {

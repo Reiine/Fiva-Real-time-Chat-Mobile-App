@@ -3,21 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput } from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
-import moment from 'moment'; // Import moment.js for formatting timestamps
+import moment from 'moment'; 
+import base64 from 'base64-js';  // Import the base64-js library
 
 export default function ChatRoom({ route }) {
-    // Access data from route.params
     const { data, fivaId, setMessageSent, messageSent } = route.params;
     const { username, pfp } = data;
     const [messages, setMessages] = useState("");
     const [chatMessages, setChatMessages] = useState([]);
 
     useEffect(() => {
-        // Function to fetch messages from Firestore
         const fetchMessages = () => {
             const docId = createDocId(fivaId, data.fivaId);
 
-            // Listen to real-time updates
             const unsubscribe = firestore()
                 .collection('chatrooms')
                 .doc(docId)
@@ -28,7 +26,7 @@ export default function ChatRoom({ route }) {
                     setChatMessages(fetchedMessages);
                 });
 
-            return () => unsubscribe(); // Clean up the listener on unmount
+            return () => unsubscribe(); 
         };
 
         fetchMessages();
@@ -46,9 +44,12 @@ export default function ChatRoom({ route }) {
             }
         }
 
+        // Decode the message using base64-js and fix padding
+        const decodedMessage = item.message ? base64ToString(item.message) : "";
+
         return (
             <View style={[styles.chat, isSent ? styles.sent : styles.received]}>
-                <Text style={isSent ? styles.sentText : styles.receivedText}>{item.message}</Text>
+                <Text style={isSent ? styles.sentText : styles.receivedText}>{decodedMessage}</Text>
                 <Text style={isSent ? styles.sentTime : styles.receivedTime}>
                     {formattedTime}
                 </Text>
@@ -74,6 +75,7 @@ export default function ChatRoom({ route }) {
 
     const sendMessage = () => {
         const msg = messages;
+        const encodedMessage = stringToBase64(msg);  // Encode the message using base64-js
         const sentBy = fivaId;
         const sentTo = data.fivaId;
         const msgId = generateUUID();
@@ -85,19 +87,37 @@ export default function ChatRoom({ route }) {
             .collection('messages')
             .add({
                 sentBy,
-                message: msg,
+                message: encodedMessage,
                 time: firestore.FieldValue.serverTimestamp(),
                 messageId: msgId
             })
             .then(() => {
                 console.log('Message sent successfully');
-                setMessages(""); // Clear the message input field
-                setMessageSent(!messageSent)
+                setMessages(""); 
+                setMessageSent(!messageSent);
             })
             .catch((error) => {
                 console.error('Error sending message: ', error);
             });
-            
+    };
+
+    // Utility function to convert base64 string to regular string (fixes padding issues)
+    const base64ToString = (encodedMessage) => {
+        // Ensure padding is correct
+        const paddedMessage = encodedMessage.padEnd(encodedMessage.length + (4 - encodedMessage.length % 4) % 4, '=');
+        const byteArray = base64.toByteArray(paddedMessage);
+
+        // Convert byte array back to string (manually)
+        return String.fromCharCode.apply(null, byteArray);
+    };
+
+    // Utility function to convert string to base64 (fixes padding issues)
+    const stringToBase64 = (msg) => {
+        const byteArray = [];
+        for (let i = 0; i < msg.length; i++) {
+            byteArray.push(msg.charCodeAt(i));
+        }
+        return base64.fromByteArray(new Uint8Array(byteArray));
     };
 
     return (

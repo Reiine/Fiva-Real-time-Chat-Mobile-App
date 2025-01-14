@@ -1,19 +1,17 @@
-import { StyleSheet, StatusBar } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {StyleSheet, StatusBar} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Register from './components/Register';
 import Landing from './components/Landing';
 import Login from './components/Login';
 import ChatScreen from './components/ChatScreen';
 import ChatRoom from './components/ChatRoom';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import ProfileSettings from './components/ProfileSettings';
+import AdvancedSettings from './components/AdvanceSettings';
 
 const Stack = createNativeStackNavigator();
-
-
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,18 +35,23 @@ export default function App() {
     };
 
     checkLoginStatus();
-  }, [changeState]); // Empty dependency array means this runs once on mount
-
+  }, [changeState]); 
 
   function AuthNavigator() {
     return (
       <>
-        <StatusBar translucent={true} backgroundColor={"transparent"} />
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <StatusBar translucent={true} backgroundColor={'transparent'} />
+        <Stack.Navigator screenOptions={{headerShown: false}}>
           <Stack.Screen name="Landing" component={Landing} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Login">
-            {(props) => <Login {...props} setChangeState={setChangeState} changeState={changeState} />}
+            {props => (
+              <Login
+                {...props}
+                setChangeState={setChangeState}
+                changeState={changeState}
+              />
+            )}
           </Stack.Screen>
         </Stack.Navigator>
       </>
@@ -57,12 +60,29 @@ export default function App() {
 
   function AppNavigator() {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="ChatScreen">
-          {(props) => <ChatScreen {...props} setChangeState={setChangeState} changeState={changeState} fivaId={fivaId} />}
+          {props => (
+            <ChatScreen
+              {...props}
+              setChangeState={setChangeState}
+              changeState={changeState}
+              fivaId={fivaId}
+            />
+          )}
         </Stack.Screen>
         <Stack.Screen name="ChatRoom">
-          {(props) => <ChatRoom {...props}  />}
+          {props => <ChatRoom {...props} />}
+        </Stack.Screen>
+        <Stack.Screen name="profile-settings">
+          {props => (
+            <ProfileSettings {...props} fivaId={fivaId} setFivaId={setFivaId} setChangeState={setChangeState} changeState={changeState} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="advance-settings">
+          {props => (
+            <AdvancedSettings {...props}  />
+          )}
         </Stack.Screen>
       </Stack.Navigator>
     );
@@ -74,5 +94,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({});

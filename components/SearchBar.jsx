@@ -75,11 +75,14 @@ const styles = StyleSheet.create({
     list: {
         position: 'absolute',
         top: 60, // Adjust based on the height of the search input
-        left: 0,
-        right: 0,
+        left: 10,
+        right: 10,
         backgroundColor: '#171717',
         zIndex: 1,
         maxHeight: 300,
+        borderRadius:10,
+        borderTopRightRadius:0,
+        borderTopLeftRadius:0
     },
     listItem: {
         marginBottom: 10,
